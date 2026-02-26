@@ -1,15 +1,5 @@
 {
     "version": 2,
-    "rewrites": [
-        {
-            "source": "/api/(.*)",
-            "destination": "server/index.js"
-        },
-        {
-            "source": "/((?!api/|pdfs/|assets/|vite.svg).*)",
-            "destination": "/index.html"
-        }
-    ],
     "builds": [
         {
             "src": "server/index.js",
@@ -21,6 +11,16 @@
             "config": {
                 "distDir": "dist"
             }
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/server/index.js"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/client/$1"
         }
     ]
 }

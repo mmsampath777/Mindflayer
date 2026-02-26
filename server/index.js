@@ -24,6 +24,7 @@ app.use(express.json());
 // Routes
 app.use('/api/teams', teamRoutes);
 app.use('/api/admin', adminRoutes);
+app.get('/api/health', (req, res) => res.json({ status: 'active', database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected' }));
 
 // MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI;
