@@ -7,6 +7,7 @@ router.post('/login', adminController.login);
 router.get('/teams', auth, adminController.getAllTeams);
 router.post('/complete-round', auth, adminController.completeRound);
 router.delete('/team/:teamId', auth, adminController.deleteTeam);
+router.put('/team/:teamId', auth, adminController.updateTeam);
 router.get('/export', auth, adminController.exportToExcel);
 router.get('/export-registrations', auth, adminController.exportRegistrationDetails);
 

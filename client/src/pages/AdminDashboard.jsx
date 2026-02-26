@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Search, Download, CheckCircle, Clock, Trash2, ShieldX,
-    Monitor, Users, FileSpreadsheet, RefreshCw, AlertTriangle, ChevronRight
+    Search, Download, CheckCircle, Clock, Trash2, ShieldX, Edit3, X,
+    Monitor, Users, FileSpreadsheet, RefreshCw, AlertTriangle, ChevronRight, Save
 } from 'lucide-react';
 import api from '../utils/api';
 
@@ -12,6 +12,13 @@ const AdminDashboard = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [editingTeam, setEditingTeam] = useState(null);
+    const [editForm, setEditForm] = useState({
+        teamName: '',
+        teamLeader: '',
+        mobile: '',
+        teamCount: ''
+    });
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -101,6 +108,29 @@ const AdminDashboard = () => {
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
         navigate('/admin/login');
+    };
+
+    const handleEdit = (team) => {
+        setEditingTeam(team);
+        setEditForm({
+            teamName: team.teamName,
+            teamLeader: team.teamLeader,
+            mobile: team.mobile,
+            teamCount: team.teamCount || 1
+        });
+    };
+
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await api.put(`/admin/team/${editingTeam.teamId}`, editForm);
+            if (response.data.success) {
+                setEditingTeam(null);
+                fetchTeams();
+            }
+        } catch (err) {
+            alert(err.response?.data?.message || 'Update failed');
+        }
     };
 
     const handleDelete = async (teamId, teamName) => {
@@ -300,7 +330,13 @@ const AdminDashboard = () => {
                                                 <td className="p-6 text-right font-mono text-neon-red text-lg font-black italic">
                                                     {calculateTotalTime(team)}
                                                 </td>
-                                                <td className="p-6 text-right">
+                                                <td className="p-6 text-right flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleEdit(team)}
+                                                        className="text-white hover:text-neon-red transition-colors p-2 bg-red-950/20 border border-red-950 hover:border-neon-red"
+                                                    >
+                                                        <Edit3 size={16} />
+                                                    </button>
                                                     <button
                                                         onClick={() => handleDelete(team.teamId, team.teamName)}
                                                         className="text-red-900 hover:text-red-500 transition-colors p-2 bg-red-950/20 border border-red-950 hover:border-red-600"
@@ -339,6 +375,86 @@ const AdminDashboard = () => {
                     </div>
                 </footer>
             </div>
+
+            {/* Edit Modal */}
+            <AnimatePresence>
+                {editingTeam && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+                    >
+                        <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={() => setEditingTeam(null)}></div>
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            className="w-full max-w-md bg-horror-bg border-4 border-red-950 p-8 relative z-10 horror-card"
+                        >
+                            <div className="flex justify-between items-center mb-8 border-b-2 border-red-950 pb-4">
+                                <h2 className="text-2xl font-black text-neon-red uppercase italic tracking-tighter italic glitch">Edit Protocol</h2>
+                                <button onClick={() => setEditingTeam(null)} className="text-red-900 hover:text-neon-red">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleUpdate} className="space-y-6">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-red-600 uppercase tracking-widest mb-2">Team Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full bg-black/60 border-2 border-red-950 p-3 text-sm focus:border-neon-red outline-none transition-all"
+                                        value={editForm.teamName}
+                                        onChange={(e) => setEditForm({ ...editForm, teamName: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-red-600 uppercase tracking-widest mb-2">Leader Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full bg-black/60 border-2 border-red-950 p-3 text-sm focus:border-neon-red outline-none transition-all"
+                                        value={editForm.teamLeader}
+                                        onChange={(e) => setEditForm({ ...editForm, teamLeader: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-red-600 uppercase tracking-widest mb-2">Mobile</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            className="w-full bg-black/60 border-2 border-red-950 p-3 text-sm focus:border-neon-red outline-none transition-all"
+                                            value={editForm.mobile}
+                                            onChange={(e) => setEditForm({ ...editForm, mobile: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-red-600 uppercase tracking-widest mb-2">Members</label>
+                                        <input
+                                            type="number"
+                                            required
+                                            min="1"
+                                            max="4"
+                                            className="w-full bg-black/60 border-2 border-red-950 p-3 text-sm focus:border-neon-red outline-none transition-all"
+                                            value={editForm.teamCount}
+                                            onChange={(e) => setEditForm({ ...editForm, teamCount: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="w-full py-4 bg-red-800 text-black font-black uppercase text-xs hover:bg-neon-red transition-all shadow-[0_4px_15px_rgba(255,0,0,0.3)] flex items-center justify-center gap-2"
+                                >
+                                    <Save size={16} /> Apply Override
+                                </button>
+                            </form>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

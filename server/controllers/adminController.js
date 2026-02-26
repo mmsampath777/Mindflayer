@@ -105,6 +105,26 @@ exports.deleteTeam = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+exports.updateTeam = async (req, res) => {
+    try {
+        const { teamId } = req.params;
+        const { teamName, teamLeader, mobile, teamCount } = req.body;
+
+        const team = await Team.findOneAndUpdate(
+            { teamId },
+            { teamName, teamLeader, mobile, teamCount },
+            { new: true, runValidators: true }
+        );
+
+        if (!team) {
+            return res.status(404).json({ success: false, message: 'Team not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Team record updated', data: team });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 exports.exportRegistrationDetails = async (req, res) => {
     console.log('📡 Registration export requested by:', req.user || 'Unknown Admin');
     try {
